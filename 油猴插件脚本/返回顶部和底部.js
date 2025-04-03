@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         毛玻璃返回顶部和底部
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  简洁高效的智能滚动按钮，不影响页面性能
 // @author       ChenHaiJia
 // @match        *://*/*
@@ -49,17 +49,55 @@
     let isDark = false;
     let lastScrollTime = 0;
     let rafId = null;
+    let isScrolling = false;
+    let isClickLocked = false;
+
+    // 平滑滚动函数
+    const smoothScroll = (target) => {
+        if (isClickLocked) return;
+        isClickLocked = true;
+        isScrolling = true;
+        
+        window.scrollTo({
+            top: target,
+            behavior: 'smooth'
+        });
+
+        // 滚动结束后解锁
+        const checkScrollEnd = () => {
+            if (Math.abs(window.scrollY - target) < 5 || 
+                (target === 0 && window.scrollY === 0) ||
+                (target === document.documentElement.scrollHeight && 
+                 window.scrollY >= document.documentElement.scrollHeight - window.innerHeight)) {
+                isScrolling = false;
+                isClickLocked = false;
+                update();
+                window.removeEventListener('scroll', checkScrollEnd);
+            }
+        };
+
+        window.addEventListener('scroll', checkScrollEnd);
+        
+        // 设置超时解锁以防万一
+        setTimeout(() => {
+            isClickLocked = false;
+            isScrolling = false;
+            window.removeEventListener('scroll', checkScrollEnd);
+        }, 2000);
+    };
 
     // 主更新函数
     const update = () => {
         if (rafId) cancelAnimationFrame(rafId);
         rafId = requestAnimationFrame(() => {
+            if (isScrolling) return;
+            
             const scrollY = window.scrollY;
             const docHeight = document.documentElement.scrollHeight;
             const viewHeight = window.innerHeight;
 
             // 检查是否可滚动
-            const canScroll = docHeight > viewHeight +500;
+            const canScroll = docHeight > viewHeight + 500;
             btn.style.opacity = canScroll ? '1' : '0';
             btn.style.pointerEvents = canScroll ? 'auto' : 'none';
 
@@ -67,10 +105,13 @@
                 // 更新按钮状态
                 const nearBottom = scrollY > docHeight - viewHeight - 100;
                 btn.innerHTML = nearBottom ? '↑' : '↓';
+                
+                // 更新点击处理函数
                 btn.onclick = nearBottom
-                    ? () => window.scrollTo({ top: 0, behavior: 'smooth' })
-                    : () => window.scrollTo({ top: docHeight, behavior: 'smooth' });
+                    ? () => smoothScroll(0)
+                    : () => smoothScroll(docHeight);
 
+                // 根据位置调整透明度
                 btn.style.opacity = (scrollY < 100 || nearBottom) ? '0.7' : '1';
             }
         });
