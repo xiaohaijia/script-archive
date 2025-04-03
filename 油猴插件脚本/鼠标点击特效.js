@@ -4,12 +4,10 @@
 // @version       1.0
 // @description   带渐变色彩与粒子效果的点击动画
 // @icon          https://i.miji.bid/2025/03/15/560664f99070e139e28703cf92975c73.jpeg
-// @author        Grok
+// @author        ChenHaiJia
 // @match         *://*/*
 // @grant         GM_addStyle
 // @license       MIT
-// @downloadURL   https://update.greasyfork.org/scripts/529852/%E9%BC%A0%E6%A0%87%E7%82%B9%E5%87%BB%E5%8A%A8%E7%94%BB.user.js
-// @updateURL     https://update.greasyfork.org/scripts/529852/%E9%BC%A0%E6%A0%87%E7%82%B9%E5%87%BB%E5%8A%A8%E7%94%BB.meta.js
 // ==/UserScript==
 
 (function() {
